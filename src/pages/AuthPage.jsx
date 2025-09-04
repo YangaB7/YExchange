@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, ArrowLeft } from 'lucide-react';
+import { profileService, setCurrentUser } from '../lib/supabaseClient';
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -9,17 +10,39 @@ const AuthPage = () => {
   const handleYaleLogin = async () => {
     setIsLoading(true);
     
-    // Simulate authentication process
-    setTimeout(() => {
-      setIsLoading(false);
-      const isNewUser = Math.random() > 0.5; // Random for now
+    try {
+      // Simulate authentication process
+      // In production, this would redirect to Yale CAS and return with a NetID
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      if (isNewUser) {
-        navigate('/profile');
-      } else {
+      // For now, generate a mock NetID
+      const mockNetId = `yale_${Math.random().toString(36).substr(2, 9)}`;
+      const mockName = `Student ${Math.floor(Math.random() * 1000)}`;
+      
+      // Store user in localStorage (temporary solution)
+      const userData = {
+        netId: mockNetId,
+        name: mockName,
+        authenticated: true
+      };
+      setCurrentUser(userData);
+      
+      // Check if user has a profile
+      const profileCheck = await profileService.checkProfileExists(mockNetId);
+      
+      if (profileCheck.exists) {
+        // User has a profile, go to search
         navigate('/search');
+      } else {
+        // New user, go to profile creation
+        navigate('/profile/edit');
       }
-    }, 2000);
+    } catch (error) {
+      console.error('Authentication error:', error);
+      alert('Authentication failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBackToHome = () => {
@@ -77,6 +100,12 @@ const AuthPage = () => {
             </div>
           </div>
         )}
+
+        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-yellow-800 text-xs">
+            <strong>Demo Mode:</strong> This is a simulation. Click "Sign in" to create a test account.
+          </p>
+        </div>
       </div>
     </div>
   );

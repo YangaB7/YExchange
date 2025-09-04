@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Users, MapPin, Clock, MessageCircle } from 'lucide-react';
+import { profileService, getCurrentUser } from '../lib/supabaseClient';
 
 const SearchPage = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState({
     skillType: 'all',
     level: 'all',
@@ -11,58 +16,104 @@ const SearchPage = () => {
   });
   const [viewMode, setViewMode] = useState('individual');
 
-  // Mock data for now
-  const profiles = [
-    {
-      id: 1,
-      name: "Emma Chen",
-      year: "Junior",
-      college: "Silliman",
-      avatar: "EC",
-      skills: [
-        { type: "Language", skill: "Mandarin", level: "Native → Beginner/Intermediate", teaching: true },
-        { type: "Instrument", skill: "Piano", level: "Intermediate → Beginner", teaching: true }
-      ],
-      seeking: [
-        { type: "Language", skill: "Spanish", level: "Beginner → Intermediate" }
-      ],
-      availability: "Weekends",
-      distance: "0.2 mi"
-    },
-    {
-      id: 2,
-      name: "Marcus Williams",
-      year: "Sophomore", 
-      college: "Davenport",
-      avatar: "MW",
-      skills: [
-        { type: "Instrument", skill: "Guitar", level: "Advanced → Intermediate", teaching: true }
-      ],
-      seeking: [
-        { type: "Language", skill: "French", level: "Beginner → Intermediate" }
-      ],
-      availability: "Evenings",
-      distance: "0.4 mi"
-    },
-    {
-      id: 3,
-      name: "Sofia Rodriguez",
-      year: "Senior",
-      college: "Berkeley",
-      avatar: "SR",
-      skills: [
-        { type: "Language", skill: "Spanish", level: "Native → All levels", teaching: true }
-      ],
-      seeking: [
-        { type: "Instrument", skill: "Violin", level: "Beginner → Intermediate" }
-      ],
-      availability: "Afternoons",
-      distance: "0.6 mi",
-      groupSession: true
-    }
-  ];
-
   const colleges = ["All Colleges", "Berkeley", "Branford", "Davenport", "Ezra Stiles", "Franklin", "Grace Hopper", "Jonathan Edwards", "Morse", "Pauli Murray", "Pierson", "Saybrook", "Silliman", "Timothy Dwight", "Trumbull"];
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const user = getCurrentUser();
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    
+    loadProfiles();
+  }, []);
+
+  const loadProfiles = async () => {
+    try {
+      setLoading(true);
+      const result = await profileService.getAllProfiles();
+      
+      if (result.success) {
+        // Filter out the current user's profile
+        const currentUser = getCurrentUser();
+        const filteredProfiles = result.profiles.filter(
+          profile => profile.net_id !== currentUser?.netId
+        );
+        setProfiles(filteredProfiles);
+      } else {
+        console.error('Error loading profiles:', result.error);
+      }
+    } catch (error) {
+      console.error('Error loading profiles:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleProfileClick = (profileId) => {
+    navigate(`/profile/${profileId}`);
+  };
+
+  const handleMyProfile = () => {
+    navigate('/profile');
+  };
+
+  // Filter profiles based on search and filters
+  const filteredProfiles = profiles.filter(profile => {
+    // Search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        profile.name?.toLowerCase().includes(searchLower) ||
+        profile.canTeach?.some(skill => skill.skill.toLowerCase().includes(searchLower)) ||
+        profile.seeking?.some(skill => skill.skill.toLowerCase().includes(searchLower));
+      
+      if (!matchesSearch) return false;
+    }
+
+    // College filter
+    if (activeFilters.college !== 'all' && activeFilters.college !== 'allcolleges') {
+      const filterCollege = activeFilters.college.replace(/([A-Z])/g, ' $1').trim();
+      if (profile.college?.toLowerCase() !== filterCollege.toLowerCase()) return false;
+    }
+
+    // Skill type filter
+    if (activeFilters.skillType !== 'all') {
+      const hasSkillType = 
+        profile.canTeach?.some(skill => skill.type === activeFilters.skillType) ||
+        profile.seeking?.some(skill => skill.type === activeFilters.skillType);
+      if (!hasSkillType) return false;
+    }
+
+    return true;
+  });
+
+  const formatAvailability = (availability) => {
+    if (!availability || availability.length === 0) return 'Flexible';
+    
+    // Extract unique time periods
+    const periods = new Set();
+    availability.forEach(slot => {
+      const parts = slot.split(' ');
+      if (parts.length > 1) {
+        periods.add(parts[1]);
+      }
+    });
+    
+    return Array.from(periods).slice(0, 2).join(', ');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading profiles...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -76,7 +127,10 @@ const SearchPage = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-3">
-              <button className="text-slate-600 hover:text-slate-900 font-medium transition-colors">
+              <button 
+                onClick={handleMyProfile}
+                className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
+              >
                 My Profile
               </button>
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-medium transition-colors">
@@ -194,94 +248,138 @@ const SearchPage = () => {
         </div>
 
         {/* Results */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {profiles.map((profile) => (
-            <div key={profile.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-slate-300 transition-all duration-300 overflow-hidden">
-              
-              {/* Profile Header */}
-              <div className="p-6 pb-4 relative">
-                {profile.groupSession && (
-                  <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 text-xs font-semibold rounded-full flex items-center">
-                    <Users size={12} className="mr-1" />
-                    GROUP
+        {filteredProfiles.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+            <p className="text-slate-500 text-lg mb-4">No profiles found matching your criteria</p>
+            <button 
+              onClick={() => {
+                setSearchTerm('');
+                setActiveFilters({
+                  skillType: 'all',
+                  level: 'all',
+                  availability: 'all',
+                  college: 'all'
+                });
+              }}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProfiles.map((profile) => (
+              <div 
+                key={profile.id} 
+                className="bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-slate-300 transition-all duration-300 overflow-hidden cursor-pointer"
+                onClick={() => handleProfileClick(profile.id)}
+              >
+                
+                {/* Profile Header */}
+                <div className="p-6 pb-4 relative">
+                  {profile.groupSession && (
+                    <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 text-xs font-semibold rounded-full flex items-center">
+                      <Users size={12} className="mr-1" />
+                      GROUP
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {profile.avatar_initials || profile.name?.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">{profile.name}</h3>
+                      <p className="text-slate-600 text-sm">{profile.year} • {profile.college}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm text-slate-500 mb-4">
+                    <div className="flex items-center">
+                      <MapPin size={14} className="mr-1" />
+                      {profile.distance} away
+                    </div>
+                    <div className="flex items-center">
+                      <Clock size={14} className="mr-1" />
+                      {formatAvailability(profile.availability)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Skills Teaching */}
+                {profile.canTeach && profile.canTeach.length > 0 && (
+                  <div className="px-6 pb-4">
+                    <h4 className="text-xs font-bold text-emerald-600 mb-3 uppercase tracking-wide">Can Teach</h4>
+                    <div className="space-y-2">
+                      {profile.canTeach.slice(0, 2).map((skill, index) => (
+                        <div key={index} className="bg-emerald-50 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold text-slate-900">{skill.skill}</span>
+                            <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium">
+                              {skill.type}
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-600">
+                            {skill.level === 'native' ? 'Native/Expert' : `${skill.level} Level`}
+                          </div>
+                        </div>
+                      ))}
+                      {profile.canTeach.length > 2 && (
+                        <p className="text-xs text-slate-500 text-center">+{profile.canTeach.length - 2} more</p>
+                      )}
+                    </div>
                   </div>
                 )}
-                
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {profile.avatar}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">{profile.name}</h3>
-                    <p className="text-slate-600 text-sm">{profile.year} • {profile.college}</p>
-                  </div>
-                </div>
 
-                <div className="flex items-center justify-between text-sm text-slate-500 mb-4">
-                  <div className="flex items-center">
-                    <MapPin size={14} className="mr-1" />
-                    {profile.distance} away
-                  </div>
-                  <div className="flex items-center">
-                    <Clock size={14} className="mr-1" />
-                    {profile.availability}
-                  </div>
-                </div>
-              </div>
-
-              {/* Skills Teaching */}
-              <div className="px-6 pb-4">
-                <h4 className="text-xs font-bold text-emerald-600 mb-3 uppercase tracking-wide">Can Teach</h4>
-                <div className="space-y-2">
-                  {profile.skills.map((skill, index) => (
-                    <div key={index} className="bg-emerald-50 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-slate-900">{skill.skill}</span>
-                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium">
-                          {skill.type}
-                        </span>
-                      </div>
-                      <div className="text-xs text-slate-600">{skill.level}</div>
+                {/* Skills Seeking */}
+                {profile.seeking && profile.seeking.length > 0 && (
+                  <div className="px-6 pb-6">
+                    <h4 className="text-xs font-bold text-blue-600 mb-3 uppercase tracking-wide">Looking to Learn</h4>
+                    <div className="space-y-2">
+                      {profile.seeking.slice(0, 1).map((skill, index) => (
+                        <div key={index} className="bg-blue-50 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold text-slate-900">{skill.skill}</span>
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                              {skill.type}
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-600">Goal: {skill.level}</div>
+                        </div>
+                      ))}
+                      {profile.seeking.length > 1 && (
+                        <p className="text-xs text-slate-500 text-center">+{profile.seeking.length - 1} more</p>
+                      )}
                     </div>
-                  ))}
+                  </div>
+                )}
+
+                {/* Action Button */}
+                <div className="px-6 pb-6">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      alert(`Connecting with ${profile.name}... (Messaging feature coming soon!)`);
+                    }}
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center shadow-sm"
+                  >
+                    <MessageCircle size={18} className="mr-2" />
+                    Connect & Chat
+                  </button>
                 </div>
               </div>
-
-              {/* Skills Seeking */}
-              <div className="px-6 pb-6">
-                <h4 className="text-xs font-bold text-blue-600 mb-3 uppercase tracking-wide">Looking to Learn</h4>
-                <div className="space-y-2">
-                  {profile.seeking.map((skill, index) => (
-                    <div key={index} className="bg-blue-50 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-slate-900">{skill.skill}</span>
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                          {skill.type}
-                        </span>
-                      </div>
-                      <div className="text-xs text-slate-600">{skill.level}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action Button */}
-              <div className="px-6 pb-6">
-                <button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center shadow-sm">
-                  <MessageCircle size={18} className="mr-2" />
-                  Connect & Chat
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Load More */}
-        <div className="text-center mt-12">
-          <button className="bg-slate-800 hover:bg-slate-900 text-white px-8 py-3 rounded-xl font-semibold transition-colors">
-            Load More Results
-          </button>
-        </div>
+        {filteredProfiles.length > 0 && (
+          <div className="text-center mt-12">
+            <button className="bg-slate-800 hover:bg-slate-900 text-white px-8 py-3 rounded-xl font-semibold transition-colors">
+              Load More Results
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

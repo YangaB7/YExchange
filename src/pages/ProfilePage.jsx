@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
-import { User, Plus, X, Save, Camera, MapPin, Clock, Languages, Music } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { User, Plus, X, Save, Camera, MapPin, Clock, Languages, Music, ArrowLeft } from 'lucide-react';
+import { profileService, getCurrentUser } from '../lib/supabaseClient';
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: 'John Smith',
+    name: '',
     year: 'Sophomore',
     college: 'Silliman',
     bio: '',
@@ -34,6 +39,48 @@ const ProfilePage = () => {
   const commonSkills = {
     language: ["Spanish", "French", "Mandarin", "German", "Italian", "Japanese", "Korean", "Portuguese", "Russian", "Arabic"],
     instrument: ["Piano", "Guitar", "Violin", "Drums", "Bass", "Saxophone", "Flute", "Trumpet", "Cello", "Clarinet"]
+  };
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+      const currentUser = getCurrentUser();
+      
+      if (!currentUser) {
+        navigate('/auth');
+        return;
+      }
+
+      const result = await profileService.getProfile(currentUser.netId);
+      
+      if (result.success && result.profile) {
+        // Profile exists, populate the form
+        setProfileData({
+          name: result.profile.name || currentUser.name || '',
+          year: result.profile.year || 'Sophomore',
+          college: result.profile.college || 'Silliman',
+          bio: result.profile.bio || '',
+          availability: result.profile.availability || [],
+          canTeach: result.profile.canTeach || [],
+          wantToLearn: result.profile.wantToLearn || []
+        });
+      } else {
+        // New profile, use default values
+        setProfileData(prev => ({
+          ...prev,
+          name: currentUser.name || ''
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      alert('Error loading profile');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddSkill = () => {
@@ -75,10 +122,51 @@ const ProfilePage = () => {
     }));
   };
 
-  const handleSave = () => {
-    console.log('Saving profile:', profileData);
-    alert('Profile saved successfully!');
+  const handleSave = async () => {
+    if (!profileData.name.trim()) {
+      alert('Please enter your name');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const currentUser = getCurrentUser();
+      
+      if (!currentUser) {
+        navigate('/auth');
+        return;
+      }
+
+      const result = await profileService.upsertProfile(profileData, currentUser.netId);
+      
+      if (result.success) {
+        alert('Profile saved successfully!');
+        navigate('/profile'); // Navigate to view mode
+      } else {
+        alert('Error saving profile: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Error saving profile');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const handleCancel = () => {
+    navigate('/profile'); // Go back to view mode
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -87,16 +175,29 @@ const ProfilePage = () => {
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
+              <button
+                onClick={handleCancel}
+                className="text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                <ArrowLeft size={24} />
+              </button>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 Yale Exchange
               </h1>
             </div>
             <div className="flex items-center space-x-3">
-              <button className="text-slate-600 hover:text-slate-900 font-medium transition-colors">
-                Search
+              <button 
+                onClick={handleCancel}
+                className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
+              >
+                Cancel
               </button>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-medium transition-colors">
-                Messages
+              <button 
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-full font-medium transition-colors"
+              >
+                {saving ? 'Saving...' : 'Save Profile'}
               </button>
             </div>
           </div>
@@ -107,7 +208,7 @@ const ProfilePage = () => {
         {/* Profile Header */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-slate-900 mb-2">My Profile</h2>
+            <h2 className="text-3xl font-bold text-slate-900 mb-2">Edit Profile</h2>
             <p className="text-slate-600">Set up your skills and availability to connect with other Yalies</p>
           </div>
 
@@ -126,12 +227,14 @@ const ProfilePage = () => {
             <div className="flex-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Name</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Name *</label>
                   <input
                     type="text"
                     value={profileData.name}
                     onChange={(e) => setProfileData(prev => ({...prev, name: e.target.value}))}
                     className="w-full bg-slate-50 border-0 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Your full name"
+                    required
                   />
                 </div>
 
@@ -223,7 +326,16 @@ const ProfilePage = () => {
                   {commonSkills[newSkill.type].map(skill => (
                     <option key={skill} value={skill}>{skill}</option>
                   ))}
+                  <option value="Other">Other (Custom)</option>
                 </select>
+                {newSkill.skill === 'Other' && (
+                  <input
+                    type="text"
+                    placeholder="Enter skill"
+                    onChange={(e) => setNewSkill(prev => ({...prev, skill: e.target.value}))}
+                    className="flex-1 bg-white border-0 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                )}
                 <button
                   onClick={() => {
                     setNewSkill(prev => ({...prev, category: 'canTeach'}));
@@ -300,7 +412,16 @@ const ProfilePage = () => {
                   {commonSkills[newSkill.type].map(skill => (
                     <option key={skill} value={skill}>{skill}</option>
                   ))}
+                  <option value="Other">Other (Custom)</option>
                 </select>
+                {newSkill.skill === 'Other' && (
+                  <input
+                    type="text"
+                    placeholder="Enter skill"
+                    onChange={(e) => setNewSkill(prev => ({...prev, skill: e.target.value}))}
+                    className="flex-1 bg-white border-0 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                )}
                 <button
                   onClick={() => {
                     setNewSkill(prev => ({...prev, category: 'wantToLearn'}));
@@ -370,10 +491,11 @@ const ProfilePage = () => {
         <div className="text-center">
           <button
             onClick={handleSave}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 px-12 rounded-xl transition-all duration-200 flex items-center mx-auto shadow-lg"
+            disabled={saving}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-4 px-12 rounded-xl transition-all duration-200 flex items-center mx-auto shadow-lg"
           >
             <Save size={20} className="mr-3" />
-            Save Profile
+            {saving ? 'Saving...' : 'Save Profile'}
           </button>
         </div>
       </div>
