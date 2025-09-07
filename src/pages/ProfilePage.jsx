@@ -14,14 +14,20 @@ const ProfilePage = () => {
     bio: '',
     availability: [],
     canTeach: [],
-    wantToLearn: []
+    wantToLearn: [],
+    meetingSpots: []
   });
 
-  const [newSkill, setNewSkill] = useState({
+  const [newTeachSkill, setNewTeachSkill] = useState({
     type: 'language',
     skill: '',
-    level: 'beginner',
-    category: 'canTeach'
+    level: 'beginner'
+  });
+
+  const [newLearnSkill, setNewLearnSkill] = useState({
+    type: 'language',
+    skill: '',
+    level: 'beginner'
   });
 
   const [availabilityOptions] = useState([
@@ -36,6 +42,36 @@ const ProfilePage = () => {
 
   const colleges = ["Berkeley", "Branford", "Davenport", "Ezra Stiles", "Franklin", "Grace Hopper", "Jonathan Edwards", "Morse", "Pauli Murray", "Pierson", "Saybrook", "Silliman", "Timothy Dwight", "Trumbull"];
 
+  const yaleMeetingSpots = [
+    // Libraries
+    "Bass Library",
+    "Sterling Memorial Library",
+    "Beinecke Library",
+    "Marx Science Library",
+    "Haas Arts Library",
+    // Cafes & Dining
+    "Blue State Coffee",
+    "Starbucks (Barnes & Noble)",
+    "The Bow Wow",
+    "Uncommon",
+    "Koffee?",
+    "Commons Dining Hall",
+    // Academic Buildings
+    "Cross Campus",
+    "Science Hill",
+    "Hillhouse Avenue",
+    "Watson Center",
+    "Linsly-Chittenden Hall (LC)",
+    "William L. Harkness Hall (WLH)",
+    // Colleges
+    "My Residential College",
+    "Partner's Residential College",
+    // Other Spaces
+    "Schwarzman Center",
+    "Pauli Murray College",
+    "Benjamin Franklin College",
+    "Grace Hopper College"
+  ];
   const commonSkills = {
     language: ["Spanish", "French", "Mandarin", "German", "Italian", "Japanese", "Korean", "Portuguese", "Russian", "Arabic"],
     instrument: ["Piano", "Guitar", "Violin", "Drums", "Bass", "Saxophone", "Flute", "Trumpet", "Cello", "Clarinet"]
@@ -58,7 +94,6 @@ const ProfilePage = () => {
       const result = await profileService.getProfile(currentUser.netId);
       
       if (result.success && result.profile) {
-        // Profile exists, populate the form
         setProfileData({
           name: result.profile.name || currentUser.name || '',
           year: result.profile.year || 'Sophomore',
@@ -69,7 +104,6 @@ const ProfilePage = () => {
           wantToLearn: result.profile.wantToLearn || []
         });
       } else {
-        // New profile, use default values
         setProfileData(prev => ({
           ...prev,
           name: currentUser.name || ''
@@ -83,26 +117,47 @@ const ProfilePage = () => {
     }
   };
 
-  const handleAddSkill = () => {
-    if (!newSkill.skill.trim()) return;
+  const handleAddTeachSkill = () => {
+    if (!newTeachSkill.skill.trim()) return;
     
     const skill = {
-      type: newSkill.type,
-      skill: newSkill.skill,
-      level: newSkill.level,
+      type: newTeachSkill.type,
+      skill: newTeachSkill.skill,
+      level: newTeachSkill.level,
       id: Date.now()
     };
 
     setProfileData(prev => ({
       ...prev,
-      [newSkill.category]: [...prev[newSkill.category], skill]
+      canTeach: [...prev.canTeach, skill]
     }));
 
-    setNewSkill({
+    setNewTeachSkill({
       type: 'language',
       skill: '',
-      level: 'beginner',
-      category: 'canTeach'
+      level: 'beginner'
+    });
+  };
+
+  const handleAddLearnSkill = () => {
+    if (!newLearnSkill.skill.trim()) return;
+    
+    const skill = {
+      type: newLearnSkill.type,
+      skill: newLearnSkill.skill,
+      level: newLearnSkill.level,
+      id: Date.now()
+    };
+
+    setProfileData(prev => ({
+      ...prev,
+      wantToLearn: [...prev.wantToLearn, skill]
+    }));
+
+    setNewLearnSkill({
+      type: 'language',
+      skill: '',
+      level: 'beginner'
     });
   };
 
@@ -119,6 +174,15 @@ const ProfilePage = () => {
       availability: prev.availability.includes(timeSlot)
         ? prev.availability.filter(slot => slot !== timeSlot)
         : [...prev.availability, timeSlot]
+    }));
+  };
+
+  const handleMeetingSpotToggle = (spot) => {
+    setProfileData(prev => ({
+      ...prev,
+      meetingSpots: prev.meetingSpots.includes(spot)
+        ? prev.meetingSpots.filter(s => s !== spot)
+        : [...prev.meetingSpots, spot]
     }));
   };
 
@@ -141,7 +205,7 @@ const ProfilePage = () => {
       
       if (result.success) {
         alert('Profile saved successfully!');
-        navigate('/profile'); // Navigate to view mode
+        navigate('/profile');
       } else {
         alert('Error saving profile: ' + result.error);
       }
@@ -154,7 +218,7 @@ const ProfilePage = () => {
   };
 
   const handleCancel = () => {
-    navigate('/profile'); // Go back to view mode
+    navigate('/profile'); 
   };
 
   if (loading) {
@@ -205,7 +269,7 @@ const ProfilePage = () => {
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
-        {/* Profile Header */}
+        {/* Header */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-slate-900 mb-2">Edit Profile</h2>
@@ -213,7 +277,7 @@ const ProfilePage = () => {
           </div>
 
           <div className="flex items-center space-x-6 mb-8">
-            {/* Profile Picture */}
+            {/* Picture */}
             <div className="relative">
               <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                 {profileData.name.split(' ').map(n => n[0]).join('')}
@@ -223,7 +287,6 @@ const ProfilePage = () => {
               </button>
             </div>
 
-            {/* Basic Info */}
             <div className="flex-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -281,7 +344,7 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Skills Section */}
+        {/* Skills */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Can Teach */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
@@ -296,8 +359,8 @@ const ProfilePage = () => {
             <div className="bg-slate-50 rounded-lg p-4 mb-4">
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <select
-                  value={newSkill.type}
-                  onChange={(e) => setNewSkill(prev => ({...prev, type: e.target.value, skill: ''}))}
+                  value={newTeachSkill.type}
+                  onChange={(e) => setNewTeachSkill(prev => ({...prev, type: e.target.value, skill: ''}))}
                   className="bg-white border-0 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="language">Language</option>
@@ -305,8 +368,8 @@ const ProfilePage = () => {
                 </select>
 
                 <select
-                  value={newSkill.level}
-                  onChange={(e) => setNewSkill(prev => ({...prev, level: e.target.value}))}
+                  value={newTeachSkill.level}
+                  onChange={(e) => setNewTeachSkill(prev => ({...prev, level: e.target.value}))}
                   className="bg-white border-0 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="beginner">Beginner Level</option>
@@ -318,29 +381,26 @@ const ProfilePage = () => {
 
               <div className="flex gap-2">
                 <select
-                  value={newSkill.skill}
-                  onChange={(e) => setNewSkill(prev => ({...prev, skill: e.target.value}))}
+                  value={newTeachSkill.skill}
+                  onChange={(e) => setNewTeachSkill(prev => ({...prev, skill: e.target.value}))}
                   className="flex-1 bg-white border-0 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 >
-                  <option value="">Select {newSkill.type}...</option>
-                  {commonSkills[newSkill.type].map(skill => (
+                  <option value="">Select {newTeachSkill.type}...</option>
+                  {commonSkills[newTeachSkill.type].map(skill => (
                     <option key={skill} value={skill}>{skill}</option>
                   ))}
                   <option value="Other">Other (Custom)</option>
                 </select>
-                {newSkill.skill === 'Other' && (
+                {newTeachSkill.skill === 'Other' && (
                   <input
                     type="text"
                     placeholder="Enter skill"
-                    onChange={(e) => setNewSkill(prev => ({...prev, skill: e.target.value}))}
+                    onChange={(e) => setNewTeachSkill(prev => ({...prev, skill: e.target.value}))}
                     className="flex-1 bg-white border-0 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                 )}
                 <button
-                  onClick={() => {
-                    setNewSkill(prev => ({...prev, category: 'canTeach'}));
-                    handleAddSkill();
-                  }}
+                  onClick={handleAddTeachSkill}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
                 >
                   <Plus size={16} />
@@ -383,8 +443,8 @@ const ProfilePage = () => {
             <div className="bg-slate-50 rounded-lg p-4 mb-4">
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <select
-                  value={newSkill.type}
-                  onChange={(e) => setNewSkill(prev => ({...prev, type: e.target.value, skill: ''}))}
+                  value={newLearnSkill.type}
+                  onChange={(e) => setNewLearnSkill(prev => ({...prev, type: e.target.value, skill: ''}))}
                   className="bg-white border-0 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="language">Language</option>
@@ -392,8 +452,8 @@ const ProfilePage = () => {
                 </select>
 
                 <select
-                  value={newSkill.level}
-                  onChange={(e) => setNewSkill(prev => ({...prev, level: e.target.value}))}
+                  value={newLearnSkill.level}
+                  onChange={(e) => setNewLearnSkill(prev => ({...prev, level: e.target.value}))}
                   className="bg-white border-0 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="beginner">Beginner Goal</option>
@@ -404,29 +464,26 @@ const ProfilePage = () => {
 
               <div className="flex gap-2">
                 <select
-                  value={newSkill.skill}
-                  onChange={(e) => setNewSkill(prev => ({...prev, skill: e.target.value}))}
+                  value={newLearnSkill.skill}
+                  onChange={(e) => setNewLearnSkill(prev => ({...prev, skill: e.target.value}))}
                   className="flex-1 bg-white border-0 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 >
-                  <option value="">Select {newSkill.type}...</option>
-                  {commonSkills[newSkill.type].map(skill => (
+                  <option value="">Select {newLearnSkill.type}...</option>
+                  {commonSkills[newLearnSkill.type].map(skill => (
                     <option key={skill} value={skill}>{skill}</option>
                   ))}
                   <option value="Other">Other (Custom)</option>
                 </select>
-                {newSkill.skill === 'Other' && (
+                {newLearnSkill.skill === 'Other' && (
                   <input
                     type="text"
                     placeholder="Enter skill"
-                    onChange={(e) => setNewSkill(prev => ({...prev, skill: e.target.value}))}
+                    onChange={(e) => setNewLearnSkill(prev => ({...prev, skill: e.target.value}))}
                     className="flex-1 bg-white border-0 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                 )}
                 <button
-                  onClick={() => {
-                    setNewSkill(prev => ({...prev, category: 'wantToLearn'}));
-                    handleAddSkill();
-                  }}
+                  onClick={handleAddLearnSkill}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
                 >
                   <Plus size={16} />
@@ -487,7 +544,42 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Save Button */}
+        {/* Preferred Meeting Spots */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+          <div className="flex items-center mb-6">
+            <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mr-3">
+              <MapPin size={20} className="text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900">Preferred Meeting Spots</h3>
+          </div>
+
+          <p className="text-sm text-slate-600 mb-4">Select your favorite places to meet on campus</p>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {yaleMeetingSpots.map(spot => (
+              <label key={spot} className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={profileData.meetingSpots.includes(spot)}
+                  onChange={() => handleMeetingSpotToggle(spot)}
+                  className="sr-only"
+                />
+                <div className={`flex-1 p-3 rounded-lg text-sm text-center transition-all ${
+                  profileData.meetingSpots.includes(spot)
+                    ? 'bg-orange-100 text-orange-800 border-2 border-orange-300 font-medium'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                }`}>
+                  {spot}
+                </div>
+              </label>
+            ))}
+          </div>
+          
+          {profileData.meetingSpots.length === 0 && (
+            <p className="text-xs text-slate-500 mt-4 text-center">Select at least one meeting spot to help others know where you prefer to meet</p>
+          )}
+        </div>
+
         <div className="text-center">
           <button
             onClick={handleSave}

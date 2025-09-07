@@ -21,18 +21,14 @@ const ProfileView = () => {
       
       let result;
       if (profileId) {
-        // Viewing someone else's profile by ID
         result = await profileService.getProfileById(profileId);
-        // Check if this is the current user's profile
         if (currentUser && result.profile?.net_id === currentUser.netId) {
           setIsOwnProfile(true);
         }
       } else if (currentUser) {
-        // Viewing own profile
         result = await profileService.getProfile(currentUser.netId);
         setIsOwnProfile(true);
       } else {
-        // No user logged in and no profile ID
         navigate('/auth');
         return;
       }
@@ -40,10 +36,8 @@ const ProfileView = () => {
       if (result.success && result.profile) {
         setProfile(result.profile);
       } else if (isOwnProfile && !result.profile) {
-        // Own profile doesn't exist, redirect to create it
         navigate('/profile/edit');
       } else {
-        // Profile not found
         alert('Profile not found');
         navigate('/search');
       }
@@ -60,7 +54,7 @@ const ProfileView = () => {
   };
 
   const handleConnect = () => {
-    // TODO: Implement messaging system
+    // TODO: messaging system
     alert(`Connecting with ${profile.name}... (Messaging feature coming soon!)`);
   };
 
@@ -97,8 +91,7 @@ const ProfileView = () => {
 
   const formatAvailability = (availability) => {
     if (!availability || availability.length === 0) return 'Not specified';
-    
-    // Group by day
+
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     const grouped = {};
     
@@ -108,11 +101,10 @@ const ProfileView = () => {
       grouped[day].push(time);
     });
 
-    // Format for display
     const formatted = days
       .filter(day => grouped[day])
       .map(day => `${day}: ${grouped[day].join(', ')}`)
-      .slice(0, 3); // Show first 3 days
+      .slice(0, 3);
 
     if (availability.length > 9) {
       formatted.push(`+${availability.length - 9} more slots`);
@@ -167,11 +159,11 @@ const ProfileView = () => {
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
-        {/* Profile Header Card */}
+        {/* Header */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8">
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center space-x-6">
-              {/* Profile Picture */}
+              {/* Profile Pic */}
               <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                 {profile.avatar_initials || profile.name?.split(' ').map(n => n[0]).join('')}
               </div>
@@ -212,7 +204,7 @@ const ProfileView = () => {
           </div>
         </div>
 
-        {/* Skills Grid */}
+        {/* Skills */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Can Teach */}
           {profile.canTeach && profile.canTeach.length > 0 && (
@@ -287,7 +279,6 @@ const ProfileView = () => {
           </div>
         )}
 
-        {/* Edit Button for Own Profile */}
         {isOwnProfile && (
           <div className="text-center mt-12">
             <button

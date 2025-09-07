@@ -10,12 +10,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Profile Service Functions
 export const profileService = {
-  // Create or update a profile
   async upsertProfile(profileData, netId) {
     try {
-      // First, check if profile exists
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('id')
@@ -24,10 +21,8 @@ export const profileService = {
 
       const profileId = existingProfile?.id || undefined;
 
-      // Prepare profile data
       const { canTeach, wantToLearn, availability, ...profileInfo } = profileData;
       
-      // Upsert profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .upsert({
@@ -45,13 +40,11 @@ export const profileService = {
 
       if (profileError) throw profileError;
 
-      // Delete existing skills and availability to replace with new ones
       if (profileId) {
         await supabase.from('skills').delete().eq('profile_id', profile.id);
         await supabase.from('availability').delete().eq('profile_id', profile.id);
       }
 
-      // Insert teaching skills
       if (canTeach && canTeach.length > 0) {
         const teachingSkills = canTeach.map(skill => ({
           profile_id: profile.id,
@@ -68,7 +61,6 @@ export const profileService = {
         if (teachError) throw teachError;
       }
 
-      // Insert learning skills
       if (wantToLearn && wantToLearn.length > 0) {
         const learningSkills = wantToLearn.map(skill => ({
           profile_id: profile.id,
@@ -85,7 +77,6 @@ export const profileService = {
         if (learnError) throw learnError;
       }
 
-      // Insert availability
       if (availability && availability.length > 0) {
         const availabilitySlots = availability.map(slot => ({
           profile_id: profile.id,
@@ -106,10 +97,8 @@ export const profileService = {
     }
   },
 
-  // Get a single profile by netId
   async getProfile(netId) {
     try {
-      // Get profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -118,13 +107,11 @@ export const profileService = {
 
       if (profileError) {
         if (profileError.code === 'PGRST116') {
-          // Profile doesn't exist
           return { success: true, profile: null };
         }
         throw profileError;
       }
 
-      // Get skills
       const { data: skills, error: skillsError } = await supabase
         .from('skills')
         .select('*')
@@ -132,7 +119,6 @@ export const profileService = {
 
       if (skillsError) throw skillsError;
 
-      // Get availability
       const { data: availability, error: availError } = await supabase
         .from('availability')
         .select('time_slot')
@@ -140,7 +126,6 @@ export const profileService = {
 
       if (availError) throw availError;
 
-      // Format the data
       const formattedProfile = {
         ...profile,
         canTeach: skills
@@ -169,10 +154,8 @@ export const profileService = {
     }
   },
 
-  // Get profile by ID (for viewing other users)
   async getProfileById(profileId) {
     try {
-      // Get profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -181,7 +164,6 @@ export const profileService = {
 
       if (profileError) throw profileError;
 
-      // Get skills
       const { data: skills, error: skillsError } = await supabase
         .from('skills')
         .select('*')
@@ -189,7 +171,6 @@ export const profileService = {
 
       if (skillsError) throw skillsError;
 
-      // Get availability
       const { data: availability, error: availError } = await supabase
         .from('availability')
         .select('time_slot')
@@ -197,7 +178,6 @@ export const profileService = {
 
       if (availError) throw availError;
 
-      // Format the data
       const formattedProfile = {
         ...profile,
         canTeach: skills
@@ -226,10 +206,8 @@ export const profileService = {
     }
   },
 
-  // Get all profiles (for search page)
   async getAllProfiles() {
     try {
-      // Get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -237,21 +215,18 @@ export const profileService = {
 
       if (profilesError) throw profilesError;
 
-      // Get all skills
       const { data: skills, error: skillsError } = await supabase
         .from('skills')
         .select('*');
 
       if (skillsError) throw skillsError;
 
-      // Get all availability
       const { data: availability, error: availError } = await supabase
         .from('availability')
         .select('*');
 
       if (availError) throw availError;
 
-      // Format and combine the data
       const formattedProfiles = profiles.map(profile => {
         const profileSkills = skills.filter(s => s.profile_id === profile.id);
         const profileAvailability = availability.filter(a => a.profile_id === profile.id);
@@ -273,7 +248,7 @@ export const profileService = {
               level: s.skill_level
             })),
           availability: profileAvailability.map(a => a.time_slot),
-          distance: `${(Math.random() * 0.9 + 0.1).toFixed(1)} mi` // Mock distance for now
+          distance: `${(Math.random() * 0.9 + 0.1).toFixed(1)} mi` // fake
         };
       });
 
@@ -284,7 +259,6 @@ export const profileService = {
     }
   },
 
-  // Check if a profile exists
   async checkProfileExists(netId) {
     try {
       const { data, error } = await supabase
@@ -295,7 +269,6 @@ export const profileService = {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // Profile doesn't exist
           return { exists: false };
         }
         throw error;
@@ -309,10 +282,7 @@ export const profileService = {
   }
 };
 
-// Auth context helper (for managing current user)
 export const getCurrentUser = () => {
-  // For now, we'll use localStorage to simulate auth
-  // Later this will integrate with Yale CAS
   const user = localStorage.getItem('currentUser');
   return user ? JSON.parse(user) : null;
 };

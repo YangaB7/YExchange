@@ -19,7 +19,6 @@ const SearchPage = () => {
   const colleges = ["All Colleges", "Berkeley", "Branford", "Davenport", "Ezra Stiles", "Franklin", "Grace Hopper", "Jonathan Edwards", "Morse", "Pauli Murray", "Pierson", "Saybrook", "Silliman", "Timothy Dwight", "Trumbull"];
 
   useEffect(() => {
-    // Check if user is authenticated
     const user = getCurrentUser();
     if (!user) {
       navigate('/auth');
@@ -35,7 +34,6 @@ const SearchPage = () => {
       const result = await profileService.getAllProfiles();
       
       if (result.success) {
-        // Filter out the current user's profile
         const currentUser = getCurrentUser();
         const filteredProfiles = result.profiles.filter(
           profile => profile.net_id !== currentUser?.netId
@@ -59,7 +57,6 @@ const SearchPage = () => {
     navigate('/profile');
   };
 
-  // Filter profiles based on search and filters
   const filteredProfiles = profiles.filter(profile => {
     // Search filter
     if (searchTerm) {
@@ -92,7 +89,6 @@ const SearchPage = () => {
   const formatAvailability = (availability) => {
     if (!availability || availability.length === 0) return 'Flexible';
     
-    // Extract unique time periods
     const periods = new Set();
     availability.forEach(slot => {
       const parts = slot.split(' ');
@@ -117,7 +113,6 @@ const SearchPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -161,7 +156,7 @@ const SearchPage = () => {
             />
           </div>
 
-          {/* View Mode Toggle */}
+          {/* View Mode */}
           <div className="flex justify-center mb-8">
             <div className="bg-slate-100 p-1 rounded-full inline-flex">
               <button

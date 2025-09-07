@@ -12,14 +12,13 @@ const AuthPage = () => {
     
     try {
       // Simulate authentication process
-      // In production, this would redirect to Yale CAS and return with a NetID
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // For now, generate a mock NetID
       const mockNetId = `yale_${Math.random().toString(36).substr(2, 9)}`;
       const mockName = `Student ${Math.floor(Math.random() * 1000)}`;
       
-      // Store user in localStorage (temporary solution)
+      //local storage
       const userData = {
         netId: mockNetId,
         name: mockName,
@@ -27,14 +26,11 @@ const AuthPage = () => {
       };
       setCurrentUser(userData);
       
-      // Check if user has a profile
       const profileCheck = await profileService.checkProfileExists(mockNetId);
       
       if (profileCheck.exists) {
-        // User has a profile, go to search
         navigate('/search');
       } else {
-        // New user, go to profile creation
         navigate('/profile/edit');
       }
     } catch (error) {

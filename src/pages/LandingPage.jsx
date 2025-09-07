@@ -36,7 +36,7 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero */}
       <div className="max-w-6xl mx-auto px-6 py-16">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-slate-900 mb-6 leading-tight">
@@ -67,7 +67,7 @@ const LandingPage = () => {
           </div>
         </div>
 
-        {/* Features Grid */}
+        {/* Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 text-center">
             <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -102,7 +102,6 @@ const LandingPage = () => {
           </div>
         </div>
 
-        {/* How it Works */}
         <div id="how-it-works" className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-16">
           <h3 className="text-2xl font-bold text-slate-900 text-center mb-8">How Yale Exchange Works</h3>
           
