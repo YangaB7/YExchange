@@ -1,70 +1,98 @@
-# Getting Started with Create React App
+# YExchange
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**YExchange** is a peer-to-peer learning platform designed exclusively for Yale students.  
+The app connects students across residential colleges to exchange knowledge and skills —  
+from learning new languages to picking up musical instruments — all within a secure, Yale-verified community.  
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 Features
 
-### `npm start`
+- **Language Exchange**  
+  Practice Spanish, Mandarin, French, Portuguese, and more with native speakers at Yale.  
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Instrument Lessons**  
+  Learn guitar, piano, violin, flute, and other instruments from fellow student musicians.  
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Group Sessions**  
+  Join or create study groups, practice sessions, and collaborative learning circles.  
 
-### `npm test`
+- **Personalized Profiles**  
+  Share what you can teach, what you’d like to learn, and your availability.  
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Yale Community Verified**  
+  Access is limited to students with **Yale NetID** for safety and authenticity.  
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🖥️ How It Works
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. **Create Your Profile**  
+   Add your skills, learning goals, availability, and preferences.  
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. **Find Your Match**  
+   Browse or search for students who want to learn what you teach — or can teach you what you want to learn.  
 
-### `npm run eject`
+3. **Start Learning**  
+   Connect via chat, schedule sessions, and meet up across campus to exchange knowledge.  
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📸 Screenshots
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Here’s where you can embed your screenshots (replace filenames with actual image paths):  
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **Landing Page / Hero Section**  
+  ![Hero Screenshot](/screenshots/Hero.png)  
 
-## Learn More
+- **Skill Search & Matching**  
+  ![Search Screenshot](/screenshots/YSearch.png)  
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- **Profile Page**  
+  ![Profile Screenshot](/screenshots/Profile.png)  
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- **Home Page with Features**  
+  ![Home Screenshot](/screenshots/YExchange%20Home.png)  
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🛠️ Tech Stack
 
-### Analyzing the Bundle Size
+- **Frontend:** React (assumed from design)  
+- **Backend:** TBD (Node.js / Django / etc.)  
+- **Database:** TBD (PostgreSQL / MongoDB / etc.)  
+- **Authentication:** Yale NetID Verification  
+- **Hosting:** TBD (Heroku / AWS / Vercel / etc.)  
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+---
 
-### Making a Progressive Web App
+## 🔒 Access
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+This platform is **exclusive to Yale students**.  
+A valid **Yale NetID** is required to sign up and use the service.  
 
-### Advanced Configuration
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 📈 Roadmap
 
-### Deployment
+- [ ] Expand beyond languages and instruments to other academic skills  
+- [ ] Mobile app support (iOS/Android)  
+- [ ] Calendar integration for scheduling sessions  
+- [ ] Peer review and rating system for teaching/learning  
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
 
-### `npm run build` fails to minify
+## 🤝 Contributing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+We welcome ideas and contributions from Yale students!  
+
+1. Fork this repository  
+2. Create a new branch (`feature/new-idea`)  
+3. Commit your changes  
+4. Submit a Pull Request  
+
+---
+
+## 📧 Contact
+
+For questions or feedback, please reach out to the **Me** at yangabooker@gmail.com.  

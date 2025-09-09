@@ -113,6 +113,16 @@ const ProfileView = () => {
     return formatted.join(' • ');
   };
 
+  const formatMeetingSpots = (spots) => {
+    if (!spots || spots.length === 0) return 'No preferred spots set';
+    
+    if (spots.length <= 3) {
+      return spots.join(' • ');
+    }
+    
+    return `${spots.slice(0, 3).join(' • ')} • +${spots.length - 3} more`;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
@@ -194,12 +204,24 @@ const ProfileView = () => {
             )}
           </div>
 
-          {/* Availability Summary */}
-          <div className="bg-slate-50 rounded-lg p-4 flex items-center">
-            <Clock size={20} className="text-slate-500 mr-3" />
-            <div>
-              <p className="text-sm font-semibold text-slate-700">Availability</p>
-              <p className="text-sm text-slate-600">{formatAvailability(profile.availability)}</p>
+          {/* Quick Info Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Availability Summary */}
+            <div className="bg-slate-50 rounded-lg p-4 flex items-start">
+              <Clock size={20} className="text-slate-500 mr-3 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-slate-700 mb-1">Availability</p>
+                <p className="text-sm text-slate-600">{formatAvailability(profile.availability)}</p>
+              </div>
+            </div>
+
+            {/* Meeting Spots */}
+            <div className="bg-slate-50 rounded-lg p-4 flex items-start">
+              <MapPin size={20} className="text-slate-500 mr-3 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-slate-700 mb-1">Preferred Meeting Spots</p>
+                <p className="text-sm text-slate-600">{formatMeetingSpots(profile.meetingSpots)}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -262,6 +284,26 @@ const ProfileView = () => {
             </div>
           )}
         </div>
+
+        {/* Detailed Meeting Spots Section (if they have any) */}
+        {profile.meetingSpots && profile.meetingSpots.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mt-8">
+            <div className="flex items-center mb-6">
+              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mr-3">
+                <MapPin size={20} className="text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">All Preferred Meeting Spots</h3>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {profile.meetingSpots.map((spot, index) => (
+                <div key={index} className="bg-orange-50 text-orange-800 px-4 py-2 rounded-lg text-sm font-medium text-center">
+                  {spot}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Empty State */}
         {(!profile.canTeach || profile.canTeach.length === 0) && 

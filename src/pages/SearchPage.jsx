@@ -100,6 +100,22 @@ const SearchPage = () => {
     return Array.from(periods).slice(0, 2).join(', ');
   };
 
+  const formatMeetingSpots = (spots) => {
+    if (!spots || spots.length === 0) return 'No preference';
+    
+    // Show first spot, or first two if short names
+    if (spots.length === 1) {
+      return spots[0];
+    }
+    
+    const firstSpot = spots[0];
+    if (firstSpot.length <= 15 && spots.length >= 2) {
+      return `${firstSpot} • ${spots[1]}`;
+    }
+    
+    return `${firstSpot} +${spots.length - 1}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
@@ -289,14 +305,14 @@ const SearchPage = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-sm text-slate-500 mb-4">
+                  <div className="grid grid-cols-2 gap-2 text-sm text-slate-500 mb-4">
                     <div className="flex items-center">
-                      <MapPin size={14} className="mr-1" />
-                      {profile.distance} away
+                      <MapPin size={14} className="mr-1 flex-shrink-0" />
+                      <span className="truncate">{formatMeetingSpots(profile.meetingSpots)}</span>
                     </div>
                     <div className="flex items-center">
-                      <Clock size={14} className="mr-1" />
-                      {formatAvailability(profile.availability)}
+                      <Clock size={14} className="mr-1 flex-shrink-0" />
+                      <span className="truncate">{formatAvailability(profile.availability)}</span>
                     </div>
                   </div>
                 </div>

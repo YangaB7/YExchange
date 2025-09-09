@@ -21,7 +21,7 @@ export const profileService = {
 
       const profileId = existingProfile?.id || undefined;
 
-      const { canTeach, wantToLearn, availability, ...profileInfo } = profileData;
+      const { canTeach, wantToLearn, availability, meetingSpots, ...profileInfo } = profileData;
       
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -40,11 +40,14 @@ export const profileService = {
 
       if (profileError) throw profileError;
 
+      // Delete existing data if updating
       if (profileId) {
         await supabase.from('skills').delete().eq('profile_id', profile.id);
         await supabase.from('availability').delete().eq('profile_id', profile.id);
+        await supabase.from('meeting_spots').delete().eq('profile_id', profile.id);
       }
 
+      // Insert teaching skills
       if (canTeach && canTeach.length > 0) {
         const teachingSkills = canTeach.map(skill => ({
           profile_id: profile.id,
@@ -61,6 +64,7 @@ export const profileService = {
         if (teachError) throw teachError;
       }
 
+      // Insert learning skills
       if (wantToLearn && wantToLearn.length > 0) {
         const learningSkills = wantToLearn.map(skill => ({
           profile_id: profile.id,
@@ -77,6 +81,7 @@ export const profileService = {
         if (learnError) throw learnError;
       }
 
+      // Insert availability
       if (availability && availability.length > 0) {
         const availabilitySlots = availability.map(slot => ({
           profile_id: profile.id,
@@ -88,6 +93,20 @@ export const profileService = {
           .insert(availabilitySlots);
         
         if (availError) throw availError;
+      }
+
+      // Insert meeting spots
+      if (meetingSpots && meetingSpots.length > 0) {
+        const spots = meetingSpots.map(spot => ({
+          profile_id: profile.id,
+          location_name: spot
+        }));
+
+        const { error: spotsError } = await supabase
+          .from('meeting_spots')
+          .insert(spots);
+        
+        if (spotsError) throw spotsError;
       }
 
       return { success: true, profile };
@@ -126,6 +145,13 @@ export const profileService = {
 
       if (availError) throw availError;
 
+      const { data: meetingSpots, error: spotsError } = await supabase
+        .from('meeting_spots')
+        .select('location_name')
+        .eq('profile_id', profile.id);
+
+      if (spotsError) throw spotsError;
+
       const formattedProfile = {
         ...profile,
         canTeach: skills
@@ -144,7 +170,8 @@ export const profileService = {
             skill: s.skill_name,
             level: s.skill_level
           })),
-        availability: availability.map(a => a.time_slot)
+        availability: availability.map(a => a.time_slot),
+        meetingSpots: meetingSpots.map(s => s.location_name)
       };
 
       return { success: true, profile: formattedProfile };
@@ -178,6 +205,13 @@ export const profileService = {
 
       if (availError) throw availError;
 
+      const { data: meetingSpots, error: spotsError } = await supabase
+        .from('meeting_spots')
+        .select('location_name')
+        .eq('profile_id', profile.id);
+
+      if (spotsError) throw spotsError;
+
       const formattedProfile = {
         ...profile,
         canTeach: skills
@@ -196,7 +230,8 @@ export const profileService = {
             skill: s.skill_name,
             level: s.skill_level
           })),
-        availability: availability.map(a => a.time_slot)
+        availability: availability.map(a => a.time_slot),
+        meetingSpots: meetingSpots.map(s => s.location_name)
       };
 
       return { success: true, profile: formattedProfile };
@@ -227,9 +262,16 @@ export const profileService = {
 
       if (availError) throw availError;
 
+      const { data: meetingSpots, error: spotsError } = await supabase
+        .from('meeting_spots')
+        .select('*');
+
+      if (spotsError) throw spotsError;
+
       const formattedProfiles = profiles.map(profile => {
         const profileSkills = skills.filter(s => s.profile_id === profile.id);
         const profileAvailability = availability.filter(a => a.profile_id === profile.id);
+        const profileMeetingSpots = meetingSpots.filter(s => s.profile_id === profile.id);
 
         return {
           ...profile,
@@ -248,7 +290,7 @@ export const profileService = {
               level: s.skill_level
             })),
           availability: profileAvailability.map(a => a.time_slot),
-          distance: `${(Math.random() * 0.9 + 0.1).toFixed(1)} mi` // fake
+          meetingSpots: profileMeetingSpots.map(s => s.location_name)
         };
       });
 
