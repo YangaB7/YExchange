@@ -44,7 +44,7 @@ Here’s where you can embed your screenshots (replace filenames with actual ima
 
 - **Home Page with Features**  
   ![Home Screenshot](/screenshots/YHome.png)
-    
+
 - **Hero Section**  
   ![Hero Screenshot](/screenshots/Hero.png)  
 
@@ -58,18 +58,17 @@ Here’s where you can embed your screenshots (replace filenames with actual ima
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** React (assumed from design)  
+- **Frontend:** React 
 - **Backend:** TBD (Node.js / Django / etc.)  
-- **Database:** TBD (PostgreSQL / MongoDB / etc.)  
-- **Authentication:** Yale NetID Verification  
-- **Hosting:** TBD (Heroku / AWS / Vercel / etc.)  
+- **Database:** Supabase
+- **Authentication:** Yale NetID Verification    
 
 ---
 
 ## 🔒 Access
 
-This platform is **exclusive to Yale students**.  
-A valid **Yale NetID** is required to sign up and use the service.  
+This platform in its final state will be **exclusive to Yale students**.  
+A valid **Yale NetID** will be required to sign up and use the service.  
 
 ---
 
@@ -78,7 +77,8 @@ A valid **Yale NetID** is required to sign up and use the service.
 - [ ] Expand beyond languages and instruments to other academic skills  
 - [ ] Mobile app support (iOS/Android)  
 - [ ] Calendar integration for scheduling sessions  
-- [ ] Peer review and rating system for teaching/learning  
+- [ ] Chat Feature  
+- [ ] Group Sessions
 
 ---
 
