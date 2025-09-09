@@ -52,7 +52,7 @@ Here’s where you can embed your screenshots (replace filenames with actual ima
   ![Profile Screenshot](/screenshots/Profile.png)  
 
 - **Home Page with Features**  
-  ![Home Screenshot](/screenshots/YExchange%20Home.png)  
+  ![Home Screenshot](/screenshots/YHome.png)  
 
 ---
 
