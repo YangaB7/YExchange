@@ -95,4 +95,4 @@ We welcome ideas and contributions from Yale students!
 
 ## 📧 Contact
 
-For questions or feedback, please reach out to the **YExchange Team**.  
+For questions or feedback, please reach out to the **Me** at yangabooker@gmail.com.  
