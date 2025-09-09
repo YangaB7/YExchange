@@ -42,7 +42,10 @@ from learning new languages to picking up musical instruments — all within a s
 
 Here’s where you can embed your screenshots (replace filenames with actual image paths):  
 
-- **Landing Page / Hero Section**  
+- **Home Page with Features**  
+  ![Home Screenshot](/screenshots/YHome.png)
+    
+- **Hero Section**  
   ![Hero Screenshot](/screenshots/Hero.png)  
 
 - **Skill Search & Matching**  
@@ -50,9 +53,6 @@ Here’s where you can embed your screenshots (replace filenames with actual ima
 
 - **Profile Page**  
   ![Profile Screenshot](/screenshots/Profile.png)  
-
-- **Home Page with Features**  
-  ![Home Screenshot](/screenshots/YHome.png)  
 
 ---
 
