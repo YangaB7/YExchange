@@ -5,6 +5,8 @@ import AuthPage from './pages/AuthPage';
 import SearchPage from './pages/SearchPage';
 import ProfilePage from './pages/ProfilePage';
 import ProfileView from './pages/ProfileView';
+import MessagesPage from './pages/MessagesPage';
+import ChatPage from './pages/ChatPage';
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           <Route path="/profile" element={<ProfileView />} />
           <Route path="/profile/edit" element={<ProfilePage />} />
           <Route path="/profile/:profileId" element={<ProfileView />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/messages/:conversationId" element={<ChatPage />} />
         </Routes>
       </div>
     </Router>

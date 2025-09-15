@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Users, MapPin, Clock, MessageCircle } from 'lucide-react';
 import { profileService, getCurrentUser } from '../lib/supabaseClient';
+import { chatService } from '../lib/supabaseClient';
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -24,9 +25,8 @@ const SearchPage = () => {
       navigate('/auth');
       return;
     }
-    
     loadProfiles();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadProfiles = async () => {
     try {
@@ -55,6 +55,43 @@ const SearchPage = () => {
 
   const handleMyProfile = () => {
     navigate('/profile');
+  };
+
+  // NEW: Start or open a conversation and navigate to it
+  const handleConnect = async (otherUserNetId, otherUserName) => {
+    try {
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        navigate('/auth');
+        return;
+      }
+
+      if (!otherUserNetId) {
+        alert('Could not find this user’s ID.');
+        return;
+      }
+
+      if (currentUser.netId === otherUserNetId) {
+        navigate('/profile');
+        return;
+      }
+
+      const { success, conversationId, error } = await chatService.getOrCreateConversation(
+        currentUser.netId,
+        otherUserNetId
+      );
+
+      if (!success || !conversationId) {
+        console.error('Conversation error:', error);
+        alert('Unable to start a conversation right now.');
+        return;
+      }
+
+      navigate(`/messages/${conversationId}`);
+    } catch (err) {
+      console.error('Error connecting:', err);
+      alert('Something went wrong starting the chat.');
+    }
   };
 
   const filteredProfiles = profiles.filter(profile => {
@@ -102,17 +139,11 @@ const SearchPage = () => {
 
   const formatMeetingSpots = (spots) => {
     if (!spots || spots.length === 0) return 'No preference';
-    
-    // Show first spot, or first two if short names
-    if (spots.length === 1) {
-      return spots[0];
-    }
-    
+    if (spots.length === 1) return spots[0];
     const firstSpot = spots[0];
     if (firstSpot.length <= 15 && spots.length >= 2) {
       return `${firstSpot} • ${spots[1]}`;
     }
-    
     return `${firstSpot} +${spots.length - 1}`;
   };
 
@@ -144,7 +175,10 @@ const SearchPage = () => {
               >
                 My Profile
               </button>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-medium transition-colors">
+              <button 
+                onClick={() => navigate('/messages')}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-medium transition-colors"
+              >
                 Messages
               </button>
             </div>
@@ -201,6 +235,7 @@ const SearchPage = () => {
 
           {/* Filters */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* ...filters unchanged... */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Skill Type</label>
               <select 
@@ -285,7 +320,6 @@ const SearchPage = () => {
                 className="bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-slate-300 transition-all duration-300 overflow-hidden cursor-pointer"
                 onClick={() => handleProfileClick(profile.id)}
               >
-                
                 {/* Profile Header */}
                 <div className="p-6 pb-4 relative">
                   {profile.groupSession && (
@@ -370,7 +404,7 @@ const SearchPage = () => {
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      alert(`Connecting with ${profile.name}... (Messaging feature coming soon!)`);
+                      handleConnect(profile.net_id, profile.name);
                     }}
                     className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center shadow-sm"
                   >

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, MapPin, Clock, Languages, Music, Edit, ArrowLeft, MessageCircle } from 'lucide-react';
 import { profileService, getCurrentUser } from '../lib/supabaseClient';
+import { chatService } from '../lib/supabaseClient';
 
 const ProfileView = () => {
   const { profileId } = useParams();
@@ -53,9 +54,35 @@ const ProfileView = () => {
     navigate('/profile/edit');
   };
 
-  const handleConnect = () => {
-    // TODO: messaging system
-    alert(`Connecting with ${profile.name}... (Messaging feature coming soon!)`);
+  const handleConnect = async () => {
+    try {
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        navigate('/auth');
+        return;
+      }
+      if (!profile?.net_id) {
+        alert('Could not find this user’s ID.');
+        return;
+      }
+
+    const { success, conversationId, error } = await chatService.getOrCreateConversation(
+      currentUser.netId,
+      profile.net_id
+    );
+
+    if (!success || !conversationId) {
+      console.error('Conversation error:', error);
+      alert('Unable to start a conversation right now.');
+      return;
+    }
+
+      // Navigate to the chat page for this conversation
+      navigate(`/messages/${conversationId}`);
+    } catch (err) {
+      console.error('Error connecting:', err);
+      alert('Something went wrong starting the chat.');
+    }
   };
 
   const handleBack = () => {

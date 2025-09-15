@@ -324,6 +324,206 @@ export const profileService = {
   }
 };
 
+export const chatService = {
+  async getOrCreateConversation(user1Id, user2Id) {
+    try {
+      // Use the SQL function we created
+      const { data, error } = await supabase
+        .rpc('get_or_create_conversation', {
+          p_user1_id: user1Id,
+          p_user2_id: user2Id
+        });
+
+      if (error) throw error;
+      return { success: true, conversationId: data };
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async getUserConversations(userId) {
+    try {
+      // Get all conversations for the user
+      const { data: conversations, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+        .order('last_message_time', { ascending: false });
+
+      if (error) throw error;
+
+      // Get profile info for the other users in each conversation
+      const conversationsWithUsers = await Promise.all(
+        conversations.map(async (conv) => {
+          const otherUserId = conv.user1_id === userId ? conv.user2_id : conv.user1_id;
+          
+          // Get the other user's profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('net_id', otherUserId)
+            .single();
+
+          // Get their skills
+          if (profile) {
+            const { data: skills } = await supabase
+              .from('skills')
+              .select('*')
+              .eq('profile_id', profile.id);
+
+            profile.canTeach = skills?.filter(s => s.is_teaching).map(s => ({
+              type: s.skill_type,
+              skill: s.skill_name,
+              level: s.skill_level
+            })) || [];
+
+            profile.wantToLearn = skills?.filter(s => !s.is_teaching).map(s => ({
+              type: s.skill_type,
+              skill: s.skill_name,
+              level: s.skill_level
+            })) || [];
+          }
+
+          return {
+            ...conv,
+            otherUser: profile
+          };
+        })
+      );
+
+      return { success: true, conversations: conversationsWithUsers };
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async getConversation(conversationId) {
+    try {
+      const { data: conversation, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('id', conversationId)
+        .single();
+
+      if (error) throw error;
+
+      // Get the current user to determine who the other user is
+      const currentUser = getCurrentUser();
+      const otherUserId = conversation.user1_id === currentUser.netId 
+        ? conversation.user2_id 
+        : conversation.user1_id;
+
+      // Get other user's profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('net_id', otherUserId)
+        .single();
+
+      if (profile) {
+        // Get skills
+        const { data: skills } = await supabase
+          .from('skills')
+          .select('*')
+          .eq('profile_id', profile.id);
+
+        // Get availability
+        const { data: availability } = await supabase
+          .from('availability')
+          .select('time_slot')
+          .eq('profile_id', profile.id);
+
+        // Get meeting spots
+        const { data: meetingSpots } = await supabase
+          .from('meeting_spots')
+          .select('location_name')
+          .eq('profile_id', profile.id);
+
+        profile.canTeach = skills?.filter(s => s.is_teaching).map(s => ({
+          type: s.skill_type,
+          skill: s.skill_name,
+          level: s.skill_level
+        })) || [];
+
+        profile.wantToLearn = skills?.filter(s => !s.is_teaching).map(s => ({
+          type: s.skill_type,
+          skill: s.skill_name,
+          level: s.skill_level
+        })) || [];
+
+        profile.availability = availability?.map(a => a.time_slot) || [];
+        profile.meetingSpots = meetingSpots?.map(s => s.location_name) || [];
+      }
+
+      return { 
+        success: true, 
+        conversation,
+        otherUser: profile 
+      };
+    } catch (error) {
+      console.error('Error fetching conversation:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async getMessages(conversationId) {
+    try {
+      const { data: messages, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      return { success: true, messages };
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async sendMessage(conversationId, senderId, messageText) {
+    try {
+      const { data: message, error } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: senderId,
+          message_text: messageText
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return { success: true, message };
+    } catch (error) {
+      console.error('Error sending message:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  async markMessagesAsRead(conversationId, readerId) {
+    try {
+      // Use the SQL function we created
+      const { error } = await supabase
+        .rpc('mark_messages_read', {
+          p_conversation_id: conversationId,
+          p_reader_id: readerId
+        });
+
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+      return { success: false, error: error.message };
+    }
+  }
+};
+
 export const getCurrentUser = () => {
   const user = localStorage.getItem('currentUser');
   return user ? JSON.parse(user) : null;
