@@ -26,8 +26,7 @@ const SearchPage = () => {
       return;
     }
     loadProfiles();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
+  }, []); 
   const loadProfiles = async () => {
     try {
       setLoading(true);
@@ -57,7 +56,6 @@ const SearchPage = () => {
     navigate('/profile');
   };
 
-  // NEW: Start or open a conversation and navigate to it
   const handleConnect = async (otherUserNetId, otherUserName) => {
     try {
       const currentUser = getCurrentUser();
@@ -95,7 +93,6 @@ const SearchPage = () => {
   };
 
   const filteredProfiles = profiles.filter(profile => {
-    // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = 
@@ -106,13 +103,11 @@ const SearchPage = () => {
       if (!matchesSearch) return false;
     }
 
-    // College filter
     if (activeFilters.college !== 'all' && activeFilters.college !== 'allcolleges') {
       const filterCollege = activeFilters.college.replace(/([A-Z])/g, ' $1').trim();
       if (profile.college?.toLowerCase() !== filterCollege.toLowerCase()) return false;
     }
 
-    // Skill type filter
     if (activeFilters.skillType !== 'all') {
       const hasSkillType = 
         profile.canTeach?.some(skill => skill.type === activeFilters.skillType) ||
@@ -235,7 +230,6 @@ const SearchPage = () => {
 
           {/* Filters */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* ...filters unchanged... */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Skill Type</label>
               <select 
