@@ -77,7 +77,6 @@ const ProfileView = () => {
       return;
     }
 
-      // Navigate to the chat page for this conversation
       navigate(`/messages/${conversationId}`);
     } catch (err) {
       console.error('Error connecting:', err);
@@ -200,12 +199,11 @@ const ProfileView = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-8">
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center space-x-6">
-              {/* Profile Pic */}
+              {/* PFP*/}
               <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                 {profile.avatar_initials || profile.name?.split(' ').map(n => n[0]).join('')}
               </div>
 
-              {/* Basic Info */}
               <div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-2">{profile.name}</h2>
                 <div className="flex items-center space-x-4 text-slate-600">
@@ -231,9 +229,7 @@ const ProfileView = () => {
             )}
           </div>
 
-          {/* Quick Info Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Availability Summary */}
             <div className="bg-slate-50 rounded-lg p-4 flex items-start">
               <Clock size={20} className="text-slate-500 mr-3 mt-0.5" />
               <div className="flex-1">
@@ -312,7 +308,6 @@ const ProfileView = () => {
           )}
         </div>
 
-        {/* Detailed Meeting Spots Section (if they have any) */}
         {profile.meetingSpots && profile.meetingSpots.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mt-8">
             <div className="flex items-center mb-6">
@@ -332,7 +327,6 @@ const ProfileView = () => {
           </div>
         )}
 
-        {/* Empty State */}
         {(!profile.canTeach || profile.canTeach.length === 0) && 
          (!profile.wantToLearn || profile.wantToLearn.length === 0) && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">

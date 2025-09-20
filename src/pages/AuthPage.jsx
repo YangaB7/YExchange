@@ -11,14 +11,12 @@ const AuthPage = () => {
     setIsLoading(true);
     
     try {
-      // Simulate authentication process
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // For now, generate a mock NetID
       const mockNetId = `yale_${Math.random().toString(36).substr(2, 9)}`;
       const mockName = `Student ${Math.floor(Math.random() * 1000)}`;
-      
-      //local storage
+
       const userData = {
         netId: mockNetId,
         name: mockName,

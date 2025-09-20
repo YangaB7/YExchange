@@ -17,7 +17,6 @@ const MessagesPage = () => {
     }
     loadConversations();
     
-    // Refresh conversations every 5 seconds to check for new messages
     const interval = setInterval(loadConversations, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -122,7 +121,7 @@ const MessagesPage = () => {
           </div>
         </div>
 
-        {/* Conversations List */}
+        {/* Convos List */}
         {filteredConversations.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
             <MessageCircle size={48} className="text-slate-300 mx-auto mb-4" />
@@ -149,7 +148,6 @@ const MessagesPage = () => {
                     index !== filteredConversations.length - 1 ? 'border-b border-slate-100' : ''
                   }`}
                 >
-                  {/* Avatar */}
                   <div className="relative mr-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold">
                       {conv.otherUser?.avatar_initials || conv.otherUser?.name?.split(' ').map(n => n[0]).join('') || '?'}
@@ -160,8 +158,6 @@ const MessagesPage = () => {
                       </div>
                     )}
                   </div>
-
-                  {/* Conversation Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h3 className={`font-semibold text-slate-900 truncate ${isUnread ? 'font-bold' : ''}`}>

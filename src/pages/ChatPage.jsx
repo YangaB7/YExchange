@@ -26,11 +26,9 @@ const ChatPage = () => {
       return;
     }
     loadConversation();
-    
-    // Mark messages as read when opening conversation
+  
     chatService.markMessagesAsRead(conversationId, currentUser.netId);
-    
-    // Refresh messages every 3 seconds
+
     const interval = setInterval(loadMessages, 3000);
     return () => clearInterval(interval);
   }, [conversationId]);
@@ -47,13 +45,12 @@ const ChatPage = () => {
     try {
       setLoading(true);
       
-      // Load conversation details
+
       const convResult = await chatService.getConversation(conversationId);
       if (convResult.success) {
         setOtherUser(convResult.otherUser);
       }
-      
-      // Load messages
+
       await loadMessages();
     } catch (error) {
       console.error('Error loading conversation:', error);
@@ -67,7 +64,7 @@ const ChatPage = () => {
       const result = await chatService.getMessages(conversationId);
       if (result.success) {
         setMessages(result.messages);
-        // Mark as read again in case new messages came in
+
         chatService.markMessagesAsRead(conversationId, currentUser.netId);
       }
     } catch (error) {
@@ -122,7 +119,6 @@ const ChatPage = () => {
       
       if (result.success) {
         setMessages(prev => [...prev, result.message]);
-        // Reset calendar state
         setShowCalendar(false);
         setSelectedDate(null);
         setSelectedTime('');
@@ -209,7 +205,6 @@ const ChatPage = () => {
     }
   };
 
-  // Calendar functions
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -219,13 +214,11 @@ const ChatPage = () => {
     const startingDayOfWeek = firstDay.getDay();
     
     const days = [];
-    
-    // Add empty cells for days before the first day of the month
+
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-    
-    // Add all days of the month
+
     for (let i = 1; i <= daysInMonth; i++) {
       days.push(new Date(year, month, i));
     }
@@ -620,7 +613,7 @@ const ChatPage = () => {
             </div>
           </div>
 
-          {/* Sidebar with User Info */}
+          {/* Sidebar with user info */}
           <div className="hidden lg:block w-80 bg-white border-l border-slate-200 p-6 overflow-y-auto">
             <div className="space-y-6">
               {/* Profile Summary */}
@@ -631,7 +624,7 @@ const ChatPage = () => {
                 )}
               </div>
 
-              {/* Skills They Teach */}
+              {/* Skills they teach*/}
               {otherUser?.canTeach && otherUser.canTeach.length > 0 && (
                 <div>
                   <div className="flex items-center mb-3">
@@ -649,7 +642,7 @@ const ChatPage = () => {
                 </div>
               )}
 
-              {/* Skills They Want to Learn */}
+              {/* Skills they wanna learn */}
               {otherUser?.wantToLearn && otherUser.wantToLearn.length > 0 && (
                 <div>
                   <div className="flex items-center mb-3">

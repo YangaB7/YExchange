@@ -1,4 +1,3 @@
-// src/lib/supabaseClient.js
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
@@ -40,14 +39,12 @@ export const profileService = {
 
       if (profileError) throw profileError;
 
-      // Delete existing data if updating
       if (profileId) {
         await supabase.from('skills').delete().eq('profile_id', profile.id);
         await supabase.from('availability').delete().eq('profile_id', profile.id);
         await supabase.from('meeting_spots').delete().eq('profile_id', profile.id);
       }
 
-      // Insert teaching skills
       if (canTeach && canTeach.length > 0) {
         const teachingSkills = canTeach.map(skill => ({
           profile_id: profile.id,
@@ -81,7 +78,6 @@ export const profileService = {
         if (learnError) throw learnError;
       }
 
-      // Insert availability
       if (availability && availability.length > 0) {
         const availabilitySlots = availability.map(slot => ({
           profile_id: profile.id,
@@ -95,7 +91,6 @@ export const profileService = {
         if (availError) throw availError;
       }
 
-      // Insert meeting spots
       if (meetingSpots && meetingSpots.length > 0) {
         const spots = meetingSpots.map(spot => ({
           profile_id: profile.id,
@@ -327,7 +322,6 @@ export const profileService = {
 export const chatService = {
   async getOrCreateConversation(user1Id, user2Id) {
     try {
-      // Use the SQL function we created
       const { data, error } = await supabase
         .rpc('get_or_create_conversation', {
           p_user1_id: user1Id,
@@ -344,7 +338,6 @@ export const chatService = {
 
   async getUserConversations(userId) {
     try {
-      // Get all conversations for the user
       const { data: conversations, error } = await supabase
         .from('conversations')
         .select('*')
@@ -353,19 +346,16 @@ export const chatService = {
 
       if (error) throw error;
 
-      // Get profile info for the other users in each conversation
       const conversationsWithUsers = await Promise.all(
         conversations.map(async (conv) => {
           const otherUserId = conv.user1_id === userId ? conv.user2_id : conv.user1_id;
-          
-          // Get the other user's profile
+
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
             .eq('net_id', otherUserId)
             .single();
 
-          // Get their skills
           if (profile) {
             const { data: skills } = await supabase
               .from('skills')
@@ -409,13 +399,11 @@ export const chatService = {
 
       if (error) throw error;
 
-      // Get the current user to determine who the other user is
       const currentUser = getCurrentUser();
       const otherUserId = conversation.user1_id === currentUser.netId 
         ? conversation.user2_id 
         : conversation.user1_id;
 
-      // Get other user's profile
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -423,19 +411,16 @@ export const chatService = {
         .single();
 
       if (profile) {
-        // Get skills
         const { data: skills } = await supabase
           .from('skills')
           .select('*')
           .eq('profile_id', profile.id);
 
-        // Get availability
         const { data: availability } = await supabase
           .from('availability')
           .select('time_slot')
           .eq('profile_id', profile.id);
 
-        // Get meeting spots
         const { data: meetingSpots } = await supabase
           .from('meeting_spots')
           .select('location_name')
@@ -508,7 +493,7 @@ export const chatService = {
 
   async markMessagesAsRead(conversationId, readerId) {
     try {
-      // Use the SQL function we created
+
       const { error } = await supabase
         .rpc('mark_messages_read', {
           p_conversation_id: conversationId,
